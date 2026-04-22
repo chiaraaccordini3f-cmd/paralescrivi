@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✏️ La Mia App di Scrittura</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --rosa:     #FF6B9D;
+    --rosa-l:   #FFE8F3;
+    --viola:    #9B59B6;
+    --viola-l:  #F3E8FF;
+    --giallo:   #FFD93D;
+    --giallo-d: #c49b00;
+    --giallo-l: #FFFAE0;
+    --verde:    #6BCB77;
+    --verde-l:  #E8F9EA;
+    --azzurro:  #4D96FF;
+    --azzurro-l:#E8F2FF;
+    --dark:     #2E3A59;
+    --gray:     #F7F7F7;
+    --gray2:    #E8E8E8;
+    --muted:    #888;
+    --shadow:   0 4px 20px rgba(0,0,0,0.10);
+    --radius:   18px;
+    --radius-sm:12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(145deg, #fff0f7 0%, #f0f4ff 50%, #f0fff4 100%);
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--dark);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 16px rgba(46,58,89,0.25);
+  }
+  .header-star { font-size: 36px; animation: spin 6s linear infinite; }
+  @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+  .header-title {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 24px;
+    color: var(--giallo);
+  }
+  .header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+  .header-credit {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── TABS ── */
+  .tabs-bar {
+    display: flex;
+    background: var(--dark);
+    padding: 0 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .tab-btn {
+    padding: 11px 24px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.85); }
+  .tab-btn.active { color: white; border-bottom-color: var(--giallo); }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    border: 2.5px solid var(--gray2);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 17px;
+    color: var(--dark);
+    margin-bottom: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── MIC ── */
+  .voice-section { border-color: var(--rosa); }
+  .voice-section .card-title { color: var(--rosa); }
+
+  .mic-btn {
+    width: 100%;
+    padding: 18px;
+    border: 3px solid var(--rosa);
+    border-radius: var(--radius-sm);
+    background: var(--rosa-l);
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 19px;
+    color: var(--rosa);
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .mic-btn:hover { background: var(--rosa); color: white; transform: scale(1.02); }
+  .mic-btn.listening {
+    background: var(--rosa); color: white;
+    animation: pulse-mic 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse-mic {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,107,157,0.5); }
+    50%      { box-shadow: 0 0 0 14px rgba(255,107,157,0); }
+  }
+  .mic-status {
+    text-align: center; font-size: 14px; font-weight: 700;
+    color: var(--muted); min-height: 20px;
+  }
+  .mic-status.active { color: var(--rosa); }
+  .no-speech {
+    background: #FFF3CD; border: 2px solid var(--giallo);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; font-weight: 700; color: #856404;
+    text-align: center; display: none; margin-bottom: 10px;
+  }
+
+  /* ── TYPING ── */
+  .type-section { border-color: var(--azzurro); }
+  .type-section .card-title { color: var(--azzurro); }
+
+  .big-textarea {
+    width: 100%; min-height: 100px;
+    border: 3px solid var(--azzurro-l);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px; font-weight: 800;
+    color: var(--dark); resize: vertical; outline: none;
+    transition: border-color .2s;
+    line-height: 1.6; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .big-textarea:focus { border-color: var(--azzurro); }
+  .big-textarea::placeholder { color: var(--gray2); font-weight: 600; text-transform: none; font-size: 16px; }
+
+  .add-btn {
+    margin-top: 8px;
+    float: right;
+    background: var(--azzurro); color: white;
+    border: none; border-radius: 10px;
+    padding: 9px 20px;
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 15px; cursor: pointer;
+    transition: opacity .2s;
+  }
+  .add-btn:hover { opacity: .85; }
+
+  /* ── RESULT ── */
+  .result-section { border-color: var(--verde); }
+  .result-section .card-title { color: var(--verde); }
+  .result-box {
+    min-height: 110px;
+    background: var(--verde-l);
+    border: 2.5px dashed var(--verde);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 21px; font-weight: 800;
+    color: var(--dark); line-height: 1.7;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .result-placeholder {
+    font-size: 15px; color: var(--muted);
+    font-weight: 600; text-transform: none; letter-spacing: 0;
+  }
+  .result-char-count {
+    text-align: right; font-size: 12px;
+    color: var(--muted); margin-top: 5px; font-weight: 700;
+  }
+
+  /* ── ACTIONS ── */
+  .actions-section { border-color: var(--viola); }
+  .actions-section .card-title { color: var(--viola); }
+  .actions-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  .action-btn {
+    padding: 14px 10px;
+    border: 2.5px solid var(--gray2); border-radius: var(--radius-sm);
+    background: white;
+    font-family: 'Fredoka One', sans-serif; font-size: 15px;
+    cursor: pointer; color: var(--dark); transition: all .2s; text-align: center;
+  }
+  .action-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  .action-btn .btn-icon { font-size: 26px; display: block; margin-bottom: 3px; }
+  .action-btn.copy  { border-color: var(--azzurro); color: var(--azzurro); }
+  .action-btn.copy:hover  { background: var(--azzurro-l); }
+  .action-btn.print { border-color: var(--verde); color: var(--verde); }
+  .action-btn.print:hover { background: var(--verde-l); }
+  .action-btn.pdf   { border-color: var(--rosa); color: var(--rosa); }
+  .action-btn.pdf:hover   { background: var(--rosa-l); }
+  .clear-btn {
+    width: 100%; margin-top: 10px; padding: 11px;
+    border: 2px solid var(--gray2); border-radius: var(--radius-sm);
+    background: white; font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer; color: var(--muted);
+    transition: all .15s;
+  }
+  .clear-btn:hover { background: #FFECEC; border-color: #E57373; color: #c0392b; }
+
+  /* ══════════════════════════════════════
+     TAB 2 – SCRIVI CON IMMAGINI
+  ══════════════════════════════════════ */
+  .img-mode-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* left column: images */
+  .img-panel { border-color: var(--giallo); }
+  .img-panel .card-title { color: var(--giallo-d); }
+  .images-hint {
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 11px; font-weight: 600;
+  }
+  .img-slots-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .img-slot-wrapper { display: flex; flex-direction: column; }
+  .img-slot {
+    aspect-ratio: 1;
+    border: 3px dashed var(--giallo);
+    border-radius: var(--radius-sm);
+    background: var(--giallo-l);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s;
+    overflow: hidden; position: relative;
+  }
+  .img-slot:hover { border-color: var(--giallo-d); transform: scale(1.03); }
+  .img-slot.has-image { border-style: solid; border-color: var(--giallo); }
+  .img-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
+  .img-slot .slot-label {
+    font-size: 10px; font-weight: 800; color: var(--giallo-d);
+    margin-top: 5px; text-align: center; padding: 0 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .img-slot .slot-emoji { font-size: 28px; }
+  .img-slot input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .img-slot .remove-img {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(255,255,255,0.92);
+    border: none; border-radius: 50%;
+    width: 22px; height: 22px; font-size: 12px; cursor: pointer;
+    display: none; align-items: center; justify-content: center;
+    font-weight: 900; color: #c0392b; z-index: 2;
+  }
+  .img-slot.has-image .remove-img { display: flex; }
+  .img-slot-caption {
+    background: white; border: 2px solid var(--giallo);
+    border-radius: 7px; padding: 5px 8px;
+    font-size: 13px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    text-align: center; color: var(--dark);
+    margin-top: 5px; width: 100%; outline: none;
+    font-family: 'Nunito', sans-serif;
+  }
+  .img-slot-caption:focus { border-color: var(--giallo-d); }
+  .img-slot-caption::placeholder { color: var(--gray2); font-weight: 600; text-transform: none; font-size: 11px; }
+
+  /* right column: writing tools */
+  .write-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  /* compact mic for img mode */
+  .mic-btn-compact {
+    width: 100%; padding: 16px;
+    border: 3px solid var(--rosa); border-radius: var(--radius-sm);
+    background: var(--rosa-l);
+    font-family: 'Fredoka One', sans-serif; font-size: 17px;
+    color: var(--rosa); cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .mic-btn-compact:hover { background: var(--rosa); color: white; transform: scale(1.02); }
+  .mic-btn-compact.listening {
+    background: var(--rosa); color: white;
+    animation: pulse-mic 1.2s ease-in-out infinite;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--dark); color: white;
+    font-family: 'Fredoka One', sans-serif; font-size: 16px;
+    padding: 11px 26px; border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: white; }
+    .header, .tabs-bar, .voice-section, .type-section,
+    .actions-section, .img-panel, .no-speech { display: none !important; }
+    .result-section { border: none; box-shadow: none; padding: 0; }
+    .result-section .card-title { display: none; }
+    .result-box { border: 2px solid #ddd; font-size: 26px; min-height: 260px; }
+    .print-block { display: block !important; }
+    .print-credit { display: block !important; margin-top: 20px; font-size: 11px; color: #aaa; text-align: right; font-family: sans-serif; }
+  }
+  .print-block { display: none; }
+  .print-credit { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .main { padding: 14px; }
+    .img-mode-layout { grid-template-columns: 1fr; }
+    .img-slots-grid { grid-template-columns: 1fr 1fr; }
+    .actions-grid { grid-template-columns: 1fr 1fr; }
+    .tabs-bar { padding: 0 8px; overflow-x: auto; }
+    .tab-btn { padding: 10px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="header-star">⭐</span>
+  <div>
+    <div class="header-title">La Mia App di Scrittura</div>
+    <div class="header-sub">Scrivi con la voce o con la tastiera</div>
+  </div>
+  <div class="header-credit">Creato da Chiara Accordini</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="setTab('libero')">✏️ Scrivi Libero</button>
+  <button class="tab-btn" onclick="setTab('immagini')">🖼️ Scrivi con Immagini</button>
+</div>
+
+<!-- ══ TAB 1: SCRIVI LIBERO ══ -->
+<div id="tab-libero" class="screen active">
+  <div class="main">
+
+    <!-- MIC -->
+    <div class="card voice-section">
+      <div class="card-title">🎤 PARLA E SCRIVI</div>
+      <div class="no-speech" id="no-speech-1">⚠️ Usa Chrome o Edge per la dettatura vocale.</div>
+      <button class="mic-btn" id="mic-btn-1" onclick="toggleMic(1)">
+        <span id="mic-icon-1">🎤</span>
+        <span id="mic-label-1">PREMI E PARLA</span>
+      </button>
+      <div class="mic-status" id="mic-status-1">Premi il pulsante e parla! 😊</div>
+    </div>
+
+    <!-- TYPING -->
+    <div class="card type-section">
+      <div class="card-title">⌨️ SCRIVI CON LA TASTIERA</div>
+      <textarea class="big-textarea" id="manual-1"
+        placeholder="Scrivi qui la tua frase..."
+        oninput="onUppercase('manual-1')" rows="3"></textarea>
+      <div style="overflow:hidden;">
+        <button class="add-btn" onclick="transferManual('manual-1', 1)">✅ AGGIUNGI AL TESTO</button>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="card result-section">
+      <div class="card-title">📝 IL MIO TESTO</div>
+      <div class="result-box" id="result-box-1">
+        <span class="result-placeholder">Il tuo testo apparirà qui... ✨</span>
+      </div>
+      <div class="result-char-count" id="char-count-1"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card actions-section">
+      <div class="card-title">🚀 COSA VUOI FARE?</div>
+      <div class="actions-grid">
+        <button class="action-btn copy"  onclick="copyText(1)"><span class="btn-icon">📋</span>COPIA</button>
+        <button class="action-btn print" onclick="printText(1)"><span class="btn-icon">🖨️</span>STAMPA</button>
+        <button class="action-btn pdf"   onclick="downloadFile(1)"><span class="btn-icon">📄</span>SCARICA</button>
+      </div>
+      <button class="clear-btn" onclick="clearAll(1)">🗑️ Cancella tutto e ricomincia</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TAB 2: SCRIVI CON IMMAGINI ══ -->
+<div id="tab-immagini" class="screen">
+  <div class="main">
+    <div class="img-mode-layout">
+
+      <!-- LEFT: immagini -->
+      <div class="card img-panel">
+        <div class="card-title">🖼️ LE MIE IMMAGINI</div>
+        <div class="images-hint">Carica fino a 4 immagini. Scrivi il nome sotto. 👇</div>
+        <div class="img-slots-grid" id="img-slots"></div>
+      </div>
+
+      <!-- RIGHT: scrittura -->
+      <div class="write-panel">
+
+        <!-- MIC compact -->
+        <div class="card voice-section">
+          <div class="card-title">🎤 PARLA E SCRIVI</div>
+          <div class="no-speech" id="no-speech-2">⚠️ Usa Chrome o Edge per la dettatura vocale.</div>
+          <button class="mic-btn-compact" id="mic-btn-2" onclick="toggleMic(2)">
+            <span id="mic-icon-2">🎤</span>
+            <span id="mic-label-2">PREMI E PARLA</span>
+          </button>
+          <div class="mic-status" id="mic-status-2">Premi il pulsante e parla! 😊</div>
+        </div>
+
+        <!-- TYPING -->
+        <div class="card type-section">
+          <div class="card-title">⌨️ SCRIVI CON LA TASTIERA</div>
+          <textarea class="big-textarea" id="manual-2"
+            placeholder="Scrivi qui la tua frase..."
+            oninput="onUppercase('manual-2')" rows="3"></textarea>
+          <div style="overflow:hidden;">
+            <button class="add-btn" onclick="transferManual('manual-2', 2)">✅ AGGIUNGI AL TESTO</button>
+          </div>
+        </div>
+
+        <!-- RESULT -->
+        <div class="card result-section">
+          <div class="card-title">📝 IL MIO TESTO</div>
+          <div class="result-box" id="result-box-2">
+            <span class="result-placeholder">Il tuo testo apparirà qui... ✨</span>
+          </div>
+          <div class="result-char-count" id="char-count-2"></div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="card actions-section">
+          <div class="card-title">🚀 COSA VUOI FARE?</div>
+          <div class="actions-grid">
+            <button class="action-btn copy"  onclick="copyText(2)"><span class="btn-icon">📋</span>COPIA</button>
+            <button class="action-btn print" onclick="printText(2)"><span class="btn-icon">🖨️</span>STAMPA</button>
+            <button class="action-btn pdf"   onclick="downloadFile(2)"><span class="btn-icon">📄</span>SCARICA</button>
+          </div>
+          <button class="clear-btn" onclick="clearAll(2)">🗑️ Cancella tutto e ricomincia</button>
+        </div>
+
+      </div><!-- /write-panel -->
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- PRINT HELPERS -->
+<div class="print-block" id="print-imgs-block"></div>
+<div class="print-credit">Creato da Chiara Accordini</div>
+
+<script>
+// ── STATE ──
+let texts = { 1: '', 2: '' };
+let recognition = null;
+let activeMode = 0; // which tab mic is active (1 or 2)
+let isListening = false;
+const SLOT_COUNT = 4;
+let slotImages   = Array(SLOT_COUNT).fill(null);
+let slotCaptions = Array(SLOT_COUNT).fill('');
+
+// ── TABS ──
+function setTab(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn')[id === 'libero' ? 0 : 1].classList.add('active');
+  if (id === 'immagini') buildImageSlots();
+}
+
+// ── TEXT UTILS ──
+function onUppercase(id) {
+  const el = document.getElementById(id);
+  const pos = el.selectionStart;
+  el.value = el.value.toUpperCase();
+  el.setSelectionRange(pos, pos);
+}
+
+function updateResult(mode) {
+  const box = document.getElementById('result-box-' + mode);
+  const txt = texts[mode];
+  if (!txt.trim()) {
+    box.innerHTML = '<span class="result-placeholder">Il tuo testo apparirà qui... ✨</span>';
+    document.getElementById('char-count-' + mode).textContent = '';
+  } else {
+    box.textContent = txt;
+    document.getElementById('char-count-' + mode).textContent = txt.length + ' caratteri';
+  }
+}
+
+function appendText(txt, mode) {
+  if (!txt.trim()) return;
+  const piece = txt.trim().toUpperCase();
+  if (texts[mode] && !texts[mode].endsWith('\n')) texts[mode] += ' ';
+  texts[mode] += piece;
+  updateResult(mode);
+}
+
+function transferManual(inputId, mode) {
+  const el = document.getElementById(inputId);
+  const val = el.value.trim();
+  if (!val) { showToast('✏️ Scrivi qualcosa prima!'); return; }
+  if (texts[mode].trim()) texts[mode] += '\n';
+  texts[mode] += val.toUpperCase();
+  el.value = '';
+  updateResult(mode);
+  showToast('✅ AGGIUNTO!');
+}
+
+// ── VOICE ──
+function initSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById('no-speech-1').style.display = 'block';
+    document.getElementById('no-speech-2').style.display = 'block';
+    ['mic-btn-1','mic-btn-2'].forEach(id => {
+      const b = document.getElementById(id);
+      if(b){ b.style.opacity = '.4'; b.disabled = true; }
+    });
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = 'it-IT';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isListening = true;
+    setMicState(activeMode, true);
+  };
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (interim) document.getElementById('mic-status-' + activeMode).textContent = '💬 ' + interim.toUpperCase() + '...';
+    if (final)   { appendText(final, activeMode); showToast('✅ ASCOLTATO!'); }
+  };
+  recognition.onerror = (e) => {
+    stopMic();
+    if (e.error === 'no-speech')   showToast('🤫 Non ho sentito nulla. Riprova!');
+    else if (e.error === 'not-allowed') showToast('⚠️ Permetti il microfono!');
+    else showToast('❌ Errore: ' + e.error);
+  };
+  recognition.onend = () => { stopMic(); };
+}
+
+function toggleMic(mode) {
+  if (!recognition) return;
+  if (isListening && activeMode === mode) { recognition.stop(); return; }
+  if (isListening) recognition.stop();
+  activeMode = mode;
+  recognition.start();
+}
+
+function setMicState(mode, listening) {
+  const icon  = document.getElementById('mic-icon-'  + mode);
+  const label = document.getElementById('mic-label-' + mode);
+  const status= document.getElementById('mic-status-'+ mode);
+  const btn1  = document.getElementById('mic-btn-1');
+  const btn2  = document.getElementById('mic-btn-2');
+  if (!icon) return;
+  if (listening) {
+    icon.textContent  = '🔴';
+    label.textContent = 'STO ASCOLTANDO...';
+    status.textContent= '🎙️ Parla ora!';
+    status.classList.add('active');
+    if (btn1) btn1.classList[mode===1?'add':'remove']('listening');
+    if (btn2) btn2.classList[mode===2?'add':'remove']('listening');
+  } else {
+    icon.textContent  = '🎤';
+    label.textContent = 'PREMI E PARLA';
+    status.textContent= 'Premi il pulsante e parla! 😊';
+    status.classList.remove('active');
+    if (btn1) btn1.classList.remove('listening');
+    if (btn2) btn2.classList.remove('listening');
+  }
+}
+
+function stopMic() {
+  isListening = false;
+  setMicState(activeMode, false);
+}
+
+// ── ACTIONS ──
+function copyText(mode) {
+  if (!texts[mode].trim()) { showToast('📝 Niente da copiare!'); return; }
+  navigator.clipboard.writeText(texts[mode]).then(() => showToast('📋 COPIATO!'));
+}
+
+function printText(mode) {
+  if (!texts[mode].trim()) { showToast('📝 Niente da stampare!'); return; }
+  // build print img block (only for mode 2)
+  const block = document.getElementById('print-imgs-block');
+  block.innerHTML = '';
+  if (mode === 2 && slotImages.some(Boolean)) {
+    block.style.display = 'grid';
+    block.style.gridTemplateColumns = 'repeat(4,1fr)';
+    block.style.gap = '14px';
+    block.style.padding = '16px 0';
+    slotImages.forEach((src, i) => {
+      if (!src) return;
+      const d = document.createElement('div');
+      d.style.textAlign = 'center';
+      d.innerHTML = `<img src="${src}" style="width:100%;border-radius:8px;border:2px solid #ddd;"><div style="font-size:12px;font-weight:700;margin-top:4px;">${slotCaptions[i]||''}</div>`;
+      block.appendChild(d);
+    });
+  }
+  // swap result box text temporarily
+  const box = document.getElementById('result-box-' + mode);
+  const prev = box.innerHTML;
+  box.textContent = texts[mode];
+  window.print();
+  box.innerHTML = prev;
+  block.innerHTML = '';
+  block.style.display = 'none';
+}
+
+function downloadFile(mode) {
+  if (!texts[mode].trim()) { showToast('📝 Niente da scaricare!'); return; }
+  let imgHtml = '';
+  if (mode === 2 && slotImages.some(Boolean)) {
+    imgHtml = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">';
+    slotImages.forEach((src, i) => {
+      if (!src) return;
+      imgHtml += `<div style="text-align:center;"><img src="${src}" style="width:100%;border-radius:8px;border:2px solid #eee;"><div style="font-size:12px;font-weight:700;margin-top:4px;">${slotCaptions[i]||''}</div></div>`;
+    });
+    imgHtml += '</div>';
+  }
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  body{font-family:'Arial Rounded MT Bold',Arial,sans-serif;padding:38px;color:#2E3A59;}
+  h1{font-size:20px;margin-bottom:10px;color:#9B59B6;}
+  .testo{font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:1px;line-height:1.8;border:2px solid #ddd;border-radius:12px;padding:18px;margin:14px 0;background:#fafafa;white-space:pre-wrap;}
+  .credit{font-size:10px;color:#bbb;margin-top:28px;text-align:right;}
+</style></head><body>
+  <h1>⭐ La Mia App di Scrittura</h1>
+  ${imgHtml}
+  <div class="testo">${texts[mode].replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+  <div class="credit">Creato da Chiara Accordini</div>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'la_mia_scrittura.html'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📄 FILE SCARICATO! Aprilo e stampa come PDF.');
+}
+
+function clearAll(mode) {
+  if (texts[mode].trim() && !confirm('Cancelli tutto il testo?')) return;
+  texts[mode] = '';
+  document.getElementById('manual-' + mode).value = '';
+  if (mode === 2) {
+    slotImages   = Array(SLOT_COUNT).fill(null);
+    slotCaptions = Array(SLOT_COUNT).fill('');
+    buildImageSlots();
+  }
+  updateResult(mode);
+  showToast('🔄 Tutto cancellato!');
+}
+
+// ── IMAGE SLOTS ──
+function buildImageSlots() {
+  const container = document.getElementById('img-slots');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < SLOT_COUNT; i++) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'img-slot-wrapper';
+
+    const slot = document.createElement('div');
+    slot.className = 'img-slot' + (slotImages[i] ? ' has-image' : '');
+
+    if (slotImages[i]) {
+      const img = document.createElement('img');
+      img.src = slotImages[i]; img.alt = slotCaptions[i] || 'Immagine';
+      slot.appendChild(img);
+      const rm = document.createElement('button');
+      rm.className = 'remove-img'; rm.textContent = '✕';
+      rm.onclick = (e) => { e.stopPropagation(); slotImages[i]=null; buildImageSlots(); };
+      slot.appendChild(rm);
+    } else {
+      slot.innerHTML = `
+        <span class="slot-emoji">📷</span>
+        <span class="slot-label">Immagine ${i+1}</span>
+        <input type="file" accept="image/*" onchange="loadImg(event,${i})" title="Carica immagine">
+      `;
+    }
+    wrapper.appendChild(slot);
+
+    const cap = document.createElement('input');
+    cap.type = 'text'; cap.className = 'img-slot-caption';
+    cap.placeholder = 'Nome...'; cap.value = slotCaptions[i]; cap.maxLength = 30;
+    cap.oninput = (e) => { slotCaptions[i] = e.target.value.toUpperCase(); cap.value = cap.value.toUpperCase(); };
+    wrapper.appendChild(cap);
+
+    container.appendChild(wrapper);
+  }
+}
+
+function loadImg(event, idx) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => { slotImages[idx] = e.target.result; buildImageSlots(); };
+  reader.readAsDataURL(file);
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── INIT ──
+initSpeech();
+updateResult(1);
+updateResult(2);
+</script>
+</body>
+</html>
